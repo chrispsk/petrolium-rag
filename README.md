@@ -122,25 +122,26 @@ This creates the database structures required by the application.
 
 ---
 
-## 7. Configure Environment Variables
+## 7. Environment Configuration
 
-Create:
+Runtime configuration is stored in:
 
 ```text
 production/langgraph_ap/.env
 ```
 
-Example:
+The `.env` file contains the configuration required by the application, including:
 
-```env
-API_PASSWORD=your_password
+```text
+LANGSMITH_API_KEY
+LANGSMITH_TRACING
+LANGSMITH_PROJECT
+API_PASSWORD
 ```
 
-If LangSmith tracing is used, the required LangSmith environment variables can also be added here.
+Update the values in this file as required for your local environment.
 
-Never commit `.env` files or real credentials.
-
----
+Database connection settings are currently defined in the database configuration files used by the application.
 
 # Development Mode — LangGraph Studio
 
