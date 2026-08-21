@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RAG Assistant</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <header class="dashboard-header">
+
+            <div class="brand">
+                <h1>RAG Assistant</h1>
+            </div>
+
+            <div class="nav-actions">
+
+                <button class="nav-button active" data-section="chat-section">
+                    Chat
+                </button>
+
+                <button class="nav-button" id="ingest-button">
+                    Run Ingestion
+                </button>
+
+                <button class="nav-button" data-section="statistics-section">
+                    Statistics
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <main class="dashboard-content">
+
+            <section id="chat-section" class="dashboard-section active">
+
+                <div class="chat" id="chat"></div>
+
+                <div class="composer-wrapper">
+
+                    <div class="input-area">
+
+                        <input
+                            type="text"
+                            id="query"
+                            placeholder="Message RAG Assistant"
+                            autocomplete="off"
+                        >
+
+                        <button id="send">
+                            Send
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section id="statistics-section" class="dashboard-section">
+
+                <div class="section-header">
+                    <h2>Statistics</h2>
+                    <p>Knowledge base and cache overview</p>
+                </div>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <span class="stat-label">Documents</span>
+                        <span class="stat-value" id="documents-count">-</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-label">Chunks</span>
+                        <span class="stat-value" id="chunks-count">-</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-label">Cached Queries</span>
+                        <span class="stat-value" id="cache-count">-</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-label">Total Queries</span>
+                        <span class="stat-value" id="queries-count">-</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-label">Cache Hit Rate</span>
+                        <span class="stat-value" id="cache-hit-rate">-</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <div id="notification" class="notification"></div>
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>
