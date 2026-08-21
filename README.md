@@ -187,6 +187,7 @@ Studio can be used to inspect:
 ---
 
 # Production Mode — FastAPI
+### Password used from .env: `test123`
 
 To run the application through FastAPI, switch the database imports from Studio mode to production mode.
 
