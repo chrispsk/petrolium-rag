@@ -85,9 +85,6 @@ Install the required packages:
 ```bash
 pip install -r requirements.txt
 ```
-
-The `requirements.txt` file was tested in a clean Python 3.11 environment.
-
 ---
 
 ## 4. Install Ollama
@@ -128,9 +125,6 @@ The application uses PostgreSQL for:
 - chunks
 - vector embeddings
 - semantic cache
-
-The embedding model produces 768-dimensional vectors.
-
 ---
 
 ## 6. Create the Database Schema
@@ -215,7 +209,7 @@ Studio can be used to inspect:
 # Production Mode — FastAPI
 ### Password used from .env: `test123`
 
-To run the application through FastAPI, switch the database imports from Studio mode to production mode.
+To run the application through FastAPI, switch the database imports from Studio mode to production mode like: 
 
 ## 1. `ingestion/graph.py`
 
@@ -261,7 +255,7 @@ from database import pool  # production
 
 ---
 
-## 3. Enable the Production Checkpointer
+## 3. Enable the Production Checkpointer in langgraph_ap/graph.py
 
 By default, Studio uses:
 
@@ -385,7 +379,7 @@ from studio_database import studio_pool as pool
 from studio_database import studio_pool as pool  # Studio
 ```
 
-### Graph compilation
+### Graph compilation in langgraph_ap/graph.py
 
 ```python
 # For production
@@ -578,7 +572,7 @@ Follow-up queries are intentionally not cached because their meaning may depend 
 
 ---
 
-# Document Ingestion
+# Document Ingestion from /data folder
 
 The ingestion pipeline is implemented as a separate LangGraph workflow.
 
@@ -604,9 +598,7 @@ embed_chunks
 save_to_database
 ```
 
-Only new or modified documents are re-indexed.
-
-Document changes are detected using file hashes.
+Only new or modified documents are re-indexed. Document changes are detected using file hashes.
 
 ---
 
@@ -679,13 +671,6 @@ The reranker is:
 ```text
 BAAI/bge-reranker-base
 ```
-
-Embeddings use:
-
-```text
-768 dimensions
-```
-
 ---
 
 # API
@@ -708,8 +693,6 @@ FastAPI also provides:
 /openapi.json
 ```
 
-The OpenAPI schema can be imported into API testing tools such as Burp Suite Professional.
-
 ---
 
 # Security
@@ -725,11 +708,9 @@ The current implementation includes:
 - ingestion concurrency protection
 - isolated conversation thread IDs
 
-The application is also intended for controlled API and RAG security testing.
-
 # Security Testing
 
-The application was manually tested using **Burp Suite Professional** before publication.
+The application was tested using **Burp Suite Professional**.
 
 Testing included:
 
