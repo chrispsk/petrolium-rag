@@ -437,20 +437,6 @@ The interface provides:
 
 Returned sources include both the document name and the original Markdown hierarchy.
 
-Example:
-
-```text
-adblue-and-def.md
->
-METHODOLOGY AND SPECIFICATIONS GUIDE
->
-Product specification
->
-Diesel exhaust fluid (DEF)
-```
-
----
-
 # Statistics
 
 ![RAG Statistics](assets/statistics.png)
