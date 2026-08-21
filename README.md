@@ -297,7 +297,11 @@ OpenAPI schema:
 ```text
 http://127.0.0.1:8000/openapi.json
 ```
+When the frontend asks for the RAG Assistant password, use:
 
+```text
+test123
+```
 ---
 
 ## 5. Start the Frontend
