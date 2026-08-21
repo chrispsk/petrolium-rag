@@ -18,7 +18,29 @@ The project includes:
 By default, the repository is configured for **LangGraph Studio development mode**.
 
 ---
+# RAG Strategies
 
+The system combines several RAG techniques:
+
+- **Query Understanding & Routing** — classifies standalone queries, follow-ups, retries and conversation.
+- **Query Decomposition / Multi-Query RAG** — splits multi-part questions into independent retrieval queries.
+- **Two-Stage Retrieval** — pgvector similarity search followed by CrossEncoder re-ranking.
+- **Context-Aware Ingestion** — currently processes Markdown (`.md`) files and preserves `#` to `#####` hierarchy.
+- **Adaptive Chunking** — large Markdown sections are split further using recursive chunking.
+- **Contextualised Embeddings** — source name and heading path are added before embedding.
+- **Semantic Cache** — high-confidence standalone answers can be reused for semantically similar queries.
+
+The ingestion pipeline currently supports `.md` files.
+
+Markdown hierarchy is preserved:
+
+```text
+# Title
+## Section
+### Subsection
+#### Subsubsection
+##### Detail
+```
 # Installation
 
 ## 1. Clone the Repository
