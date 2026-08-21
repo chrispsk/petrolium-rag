@@ -371,3 +371,477 @@ Then run:
 ```bash
 langgraph dev
 ```
+
+# System Overview
+
+The application is split into two main LangGraph workflows:
+
+- **RAG Graph** — handles conversational queries, follow-ups, retrieval, reranking, answer generation and semantic caching.
+- **Ingestion Graph** — handles document discovery, change detection, Markdown chunking, contextualisation, embedding generation and indexing into PostgreSQL/pgvector.
+
+The overall application flow is:
+
+```text
+Documents
+   |
+   v
+Ingestion Graph
+   |
+   v
+PostgreSQL + pgvector
+   ^
+   |
+RAG Graph
+   ^
+   |
+FastAPI
+   ^
+   |
+Web Client
+```
+
+The RAG runtime uses:
+
+```text
+User Query
+   |
+   v
+Query Understanding
+   |
+   v
+Semantic Cache
+   |
+   +---- Cache Hit ----> Cached Answer
+   |
+   v
+Vector Retrieval
+   |
+   v
+CrossEncoder Reranking
+   |
+   v
+Qwen 2.5 via Ollama
+   |
+   v
+Answer + Sources
+```
+
+---
+
+# Architecture
+
+![Petroleum RAG Architecture](assets/architecture.png)
+
+The architecture separates ingestion from runtime retrieval.
+
+The ingestion workflow updates the vector database only when documents are new or modified.
+
+The runtime workflow uses semantic cache lookup before retrieval, followed by pgvector similarity search, CrossEncoder reranking and local LLM generation.
+
+---
+
+# LangGraph Studio
+
+The project can be visually inspected through LangGraph Studio.
+
+![LangGraph Studio](assets/langsmith-studio.png)
+
+Studio is useful for inspecting:
+
+- graph routing
+- node execution
+- conversation state
+- query decomposition
+- semantic cache decisions
+- retrieval results
+- reranked results
+- generated answers
+- returned sources
+- ingestion state
+
+The repository exposes two graphs:
+
+```text
+rag
+ingestion
+```
+
+---
+
+# Web Interface
+
+The project includes a lightweight single-page frontend inspired by modern conversational assistants.
+
+![RAG Assistant](assets/chat-interface.png)
+
+The interface provides:
+
+- multi-turn chat
+- source attribution
+- authenticated sessions
+- document ingestion
+- statistics
+- isolated conversation thread IDs
+
+Returned sources include both the document name and the original Markdown hierarchy.
+
+Example:
+
+```text
+adblue-and-def.md
+>
+METHODOLOGY AND SPECIFICATIONS GUIDE
+>
+Product specification
+>
+Diesel exhaust fluid (DEF)
+```
+
+---
+
+# Statistics
+
+![RAG Statistics](assets/statistics.png)
+
+The frontend currently displays:
+
+- Documents
+- Chunks
+- Cached Queries
+- Total Queries
+- Cache Hit Rate
+
+These values are returned by the FastAPI `/stats` endpoint.
+
+---
+
+# RAG Workflow
+
+The conversational workflow supports:
+
+- standalone knowledge queries
+- follow-up questions
+- retries and corrections
+- multi-part comparisons
+- greetings
+- polite/social messages
+- ordinary conversation
+
+A typical RAG request follows this path:
+
+```text
+START
+  |
+  v
+add_user_message
+  |
+  v
+understand_query
+  |
+  +--> conversation --> chat_response --> END
+  |
+  +--> retry --> retrieve
+  |
+  +--> query / follow_up --> check_cache
+                               |
+                               +--> cache hit --> END
+                               |
+                               v
+                            retrieve
+                               |
+                               v
+                             rerank
+                               |
+                               v
+                            generate
+                               |
+                               v
+                           save_cache
+                               |
+                               v
+                              END
+```
+
+---
+
+# Query Decomposition
+
+Complex requests can be decomposed into standalone retrieval subqueries.
+
+Example:
+
+```text
+Compare the minimum transaction size for DEF
+with the minimum volume for Argo ethanol in Chicago.
+```
+
+becomes:
+
+```text
+What is the minimum transaction size for DEF?
+
+What is the minimum volume for Argo ethanol in Chicago?
+```
+
+Each requirement is retrieved and reranked independently before the final answer is generated.
+
+---
+
+# Semantic Cache
+
+Standalone knowledge queries can be stored in a semantic cache backed by pgvector.
+
+The cache stores:
+
+```text
+query
+query embedding
+answer
+sources
+subqueries
+```
+
+A query is cached only when:
+
+- the answer is complete
+- sources are present
+- the reranker confidence passes the configured threshold
+- the request is a standalone query
+
+Current threshold:
+
+```text
+0.95
+```
+
+Follow-up queries are intentionally not cached because their meaning may depend on conversation history.
+
+---
+
+# Document Ingestion
+
+The ingestion pipeline is implemented as a separate LangGraph workflow.
+
+```text
+scan_files
+    |
+    v
+detect_changes
+    |
+    v
+load_documents
+    |
+    v
+chunk_documents
+    |
+    v
+contextualize_chunks
+    |
+    v
+embed_chunks
+    |
+    v
+save_to_database
+```
+
+Only new or modified documents are re-indexed.
+
+Document changes are detected using file hashes.
+
+---
+
+# Markdown-Aware Chunking
+
+Documents are split according to Markdown hierarchy:
+
+```text
+#     document_title
+##    section
+###   subsection
+####  subsubsection
+##### detail
+```
+
+Long sections are further split using:
+
+```text
+chunk_size = 1500
+chunk_overlap = 150
+```
+
+Before embedding, each chunk is contextualised with the source and heading path:
+
+```text
+Source: document.md
+Context: Section > Subsection > Detail
+
+Original chunk content...
+```
+
+This preserves structural context during retrieval and also allows accurate source attribution.
+
+---
+
+# Retrieval and Reranking
+
+The retrieval pipeline uses two stages:
+
+```text
+Query
+  |
+  v
+BGE Embedding
+  |
+  v
+PostgreSQL + pgvector
+  |
+  v
+Candidate Chunks
+  |
+  v
+BGE CrossEncoder
+  |
+  v
+Reranked Context
+  |
+  v
+Qwen 2.5
+```
+
+The embedding model is:
+
+```text
+BAAI/bge-base-en-v1.5
+```
+
+The reranker is:
+
+```text
+BAAI/bge-reranker-base
+```
+
+Embeddings use:
+
+```text
+768 dimensions
+```
+
+---
+
+# API
+
+FastAPI exposes:
+
+```text
+POST /login
+POST /query
+POST /ingest
+GET  /stats
+GET  /health
+```
+
+FastAPI also provides:
+
+```text
+/docs
+/redoc
+/openapi.json
+```
+
+The OpenAPI schema can be imported into API testing tools such as Burp Suite Professional.
+
+---
+
+# Security
+
+The current implementation includes:
+
+- HttpOnly session cookies
+- server-side password configuration
+- authenticated API endpoints
+- request validation with Pydantic
+- rate limiting
+- CORS configuration
+- ingestion concurrency protection
+- isolated conversation thread IDs
+
+The application is also intended for controlled API and RAG security testing.
+
+Areas of interest include:
+
+```text
+Authentication
+Session management
+CORS
+CSRF
+Rate limiting
+Input validation
+Thread isolation
+Prompt injection
+Indirect prompt injection
+Semantic cache poisoning
+Retrieval manipulation
+Source spoofing
+```
+
+---
+
+# Project Structure
+
+```text
+petrolium/
+|
++-- data/
+|
++-- Notebooks/
+|
++-- production/
+|   |
+|   +-- .env
+|   +-- setup_database.py
+|   |
+|   +-- client/
+|   |   +-- index.html
+|   |   +-- app.js
+|   |   +-- style.css
+|   |
+|   +-- langgraph_ap/
+|       +-- api.py
+|       +-- database.py
+|       +-- evaluation.py
+|       +-- graph.py
+|       +-- nodes.py
+|       +-- state.py
+|       +-- studio_database.py
+|       +-- langgraph.json
+|       +-- requirements.txt
+|       |
+|       +-- ingestion/
+|           +-- graph.py
+|           +-- nodes.py
+|           +-- state.py
+|
++-- assets/
+|   +-- architecture.png
+|   +-- langsmith-studio.png
+|   +-- chat-interface.png
+|   +-- statistics.png
+|
++-- .gitignore
++-- README.md
+```
+
+---
+
+# Current Status
+
+The project is under active development.
+
+Current work focuses on:
+
+- conversational RAG orchestration
+- retrieval quality
+- semantic caching
+- ingestion reliability
+- API hardening
+- RAG-specific security testing
