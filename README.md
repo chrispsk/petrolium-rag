@@ -380,35 +380,6 @@ The application is split into two main LangGraph workflows:
 - **RAG Graph** — handles conversational queries, follow-ups, retrieval, reranking, answer generation and semantic caching.
 - **Ingestion Graph** — handles document discovery, change detection, Markdown chunking, contextualisation, embedding generation and indexing into PostgreSQL/pgvector.
 
-
-The RAG runtime uses:
-
-```text
-User Query
-   |
-   v
-Query Understanding
-   |
-   v
-Semantic Cache
-   |
-   +---- Cache Hit ----> Cached Answer
-   |
-   v
-Vector Retrieval
-   |
-   v
-CrossEncoder Reranking
-   |
-   v
-Qwen 2.5 via Ollama
-   |
-   v
-Answer + Sources
-```
-
----
-
 # Architecture
 
 ![Petroleum RAG Architecture](assets/architecture.png)
