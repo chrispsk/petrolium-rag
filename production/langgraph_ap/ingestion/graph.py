@@ -3,7 +3,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langgraph.graph import START, END, StateGraph
 
 # for production (FastAPI)
-# from database import pool
+#from database import pool
 # for development (Studio)
 from studio_database import studio_pool as pool
 
