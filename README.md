@@ -18,7 +18,6 @@ The project includes:
 By default, the repository is configured for **LangGraph Studio development mode**.
 
 ---
-# RAG Strategies
 
 The system combines several RAG techniques:
 
