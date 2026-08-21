@@ -1,12 +1,20 @@
 # Third-party libraries
 import psycopg
-
 from pgvector.psycopg import register_vector
-
+import os
+from dotenv import load_dotenv
 
 # -------------------- PostgreSQL connection --------------------
 
-connection = psycopg.connect(dbname="postgres", user="postgres", password="root", host="localhost", port="5432")
+load_dotenv()
+
+connection = psycopg.connect(
+    dbname=os.getenv("POSTGRES_DB", "postgres"),
+    user=os.getenv("POSTGRES_USER", "postgres"),
+    password=os.getenv("POSTGRES_PASSWORD"),
+    host=os.getenv("POSTGRES_HOST", "localhost"),
+    port=os.getenv("POSTGRES_PORT", "5432")
+)
 cursor = connection.cursor()
 print("Connected to PostgreSQL.")
 
