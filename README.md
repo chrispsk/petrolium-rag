@@ -40,6 +40,14 @@ Markdown hierarchy is preserved:
 #### Subsubsection
 ##### Detail
 ```
+# System Overview
+
+The application is split into two main LangGraph workflows:
+
+- **RAG Graph** — handles conversational queries, follow-ups, retrieval, reranking, answer generation and semantic caching.
+- **Ingestion Graph** — handles document discovery, change detection, Markdown chunking, contextualisation, embedding generation and indexing into PostgreSQL/pgvector.
+
+
 # Installation
 
 ## 1. Clone the Repository
@@ -393,13 +401,6 @@ Then run:
 ```bash
 langgraph dev
 ```
-
-# System Overview
-
-The application is split into two main LangGraph workflows:
-
-- **RAG Graph** — handles conversational queries, follow-ups, retrieval, reranking, answer generation and semantic caching.
-- **Ingestion Graph** — handles document discovery, change detection, Markdown chunking, contextualisation, embedding generation and indexing into PostgreSQL/pgvector.
 
 # Architecture
 
