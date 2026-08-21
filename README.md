@@ -705,23 +705,43 @@ The current implementation includes:
 
 The application is also intended for controlled API and RAG security testing.
 
-Areas of interest include:
+# Security Testing
+
+The application was manually tested using **Burp Suite Professional** before publication.
+
+Testing included:
+
+- authentication and unauthenticated endpoint access
+- session cookie handling
+- API request tampering
+- rate-limit enforcement
+- CORS behaviour
+- malformed JSON requests
+- unexpected and missing parameters
+- FastAPI / Pydantic input validation
+- concurrent ingestion requests
+- API endpoint discovery through OpenAPI
+- automated Burp Scanner auditing
+- parameter discovery using Param Miner
+- path traversal attempts against the static frontend server
+- prompt injection attempts
+- encoded and multilingual prompt injection payloads
+- attempts to manipulate RAG behaviour through crafted user input
+- semantic cache behaviour during adversarial queries
+
+Burp Repeater and Intruder were used for manual and automated request testing, while the OpenAPI specification was used to inspect and exercise the API surface.
+
+The testing identified expected validation responses such as:
 
 ```text
-Authentication
-Session management
-CORS
-CSRF
-Rate limiting
-Input validation
-Thread isolation
-Prompt injection
-Indirect prompt injection
-Semantic cache poisoning
-Retrieval manipulation
-Source spoofing
+401 Unauthorized
+409 Conflict
+422 Unprocessable Entity
+429 Too Many Requests
 ```
+No critical server-side vulnerability was identified during the current testing phase.
 
+Occasional LLM instruction-following failures may still occur, as with any generative model, but these were session-scoped and protected by application-level rate limiting.
 ---
 
 # Project Structure
