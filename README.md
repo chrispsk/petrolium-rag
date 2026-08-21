@@ -55,69 +55,6 @@ The ingestion pipeline creates the searchable knowledge base, while the conversa
 
 ---
 
-# Conversational RAG Workflow
-
-The main runtime graph processes both knowledge-base queries and ordinary conversation.
-
-```text
-START
-  |
-  v
-add_user_message
-  |
-  v
-understand_query
-  |
-  +---------------- conversation ----------------+
-  |                                              |
-  |                                              v
-  |                                        chat_response
-  |                                              |
-  |                                              v
-  |                                             END
-  |
-  +---------------- retry ----------------------+
-  |                                              |
-  |                                              v
-  |                                           retrieve
-  |
-  +------------- query / follow_up -------------+
-                                                 |
-                                                 v
-                                            check_cache
-                                             /       \
-                                           HIT       MISS
-                                            |          |
-                                            v          v
-                                           END      retrieve
-                                                       |
-                                                       v
-                                                     rerank
-                                                       |
-                                                       v
-                                                    generate
-                                                       |
-                                                       v
-                                                   save_cache
-                                                       |
-                                                       v
-                                                      END
-```
-
-The query-understanding stage distinguishes between:
-
-- standalone knowledge queries
-- conversational follow-ups
-- retry requests
-- comparisons
-- greetings
-- polite/social messages
-- ordinary conversation
-
-Conversation history is used only when necessary to resolve references and follow-ups.
-
----
-
 # Query Decomposition
 
 Independent information requirements are decomposed into standalone subqueries.
@@ -138,40 +75,6 @@ What is the minimum volume for Argo ethanol in Chicago?
 ```
 
 Each subquery is retrieved and reranked independently before the final answer is generated.
-
----
-
-# Retrieval Pipeline
-
-```text
-User Query
-    |
-    v
-Query Understanding
-    |
-    v
-Query Embedding
-    |
-    v
-PostgreSQL + pgvector
-    |
-    v
-Candidate Chunks
-    |
-    v
-BGE CrossEncoder
-    |
-    v
-Reranked Context
-    |
-    v
-Qwen 2.5 through Ollama
-    |
-    v
-Grounded Answer + Sources
-```
-
-Vector retrieval is used for candidate generation, while CrossEncoder reranking provides a second relevance stage.
 
 ---
 
@@ -224,43 +127,6 @@ Thanks.
 
 ---
 
-# Document Ingestion Pipeline
-
-Document ingestion is implemented as a second LangGraph workflow.
-
-```text
-START
-  |
-  v
-scan_files
-  |
-  v
-detect_changes
-  |
-  v
-load_documents
-  |
-  v
-chunk_documents
-  |
-  v
-contextualize_chunks
-  |
-  v
-embed_chunks
-  |
-  v
-save_to_database
-  |
-  v
-END
-```
-
-Only new or modified documents are re-indexed.
-
-File changes are detected using SHA-256 hashes.
-
----
 
 # Markdown-Aware Chunking
 
@@ -410,86 +276,17 @@ GET  /stats
 GET  /health
 ```
 
-FastAPI also generates:
-
-```text
-/docs
-/redoc
-/openapi.json
-```
-
-Example:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-OpenAPI schema:
-
-```text
-http://127.0.0.1:8000/openapi.json
-```
-
-The OpenAPI schema can also be imported into tools such as Burp Suite Professional for API security testing.
-
----
-
-# Authentication
+## Authentication
 
 The frontend does not contain a hardcoded API key.
 
 Authentication flow:
 
 ```text
-User Password
-      |
-      v
-POST /login
-      |
-      v
-FastAPI
-      |
-      v
-Validate API_PASSWORD from .env
-      |
-      v
-Generate random session token
-      |
-      v
-HttpOnly cookie
-      |
-      v
-Authenticated API requests
+User Password -> POST /login -> FastAPI -> Validate API_PASSWORD from .env -> Generate random session token -> HttpOnly cookie -> Authenticated API requests
 ```
 
-Session tokens are generated using:
-
-```python
-secrets.token_urlsafe(32)
-```
-
-The cookie is configured as:
-
-```text
-HttpOnly
-SameSite=Lax
-```
-
-For the current local HTTP development environment:
-
-```text
-Secure=False
-```
-
-HTTPS deployment should use:
-
-```text
-Secure=True
-```
-
----
-
-# Rate Limiting
+## Rate Limiting
 
 Knowledge queries are currently limited to:
 
@@ -582,59 +379,6 @@ production/langgraph_ap/requirements.txt
 
 The requirements were tested by installing them into a clean Python 3.11 Conda environment.
 
-Current direct dependencies:
-
-```text
-# Web API
-fastapi==0.141.1
-uvicorn==0.46.0
-pydantic==2.13.3
-python-dotenv==1.2.2
-
-# LangChain / LangGraph
-langchain-core==1.5.4
-langchain-huggingface==1.2.2
-langchain-ollama==1.1.0
-langchain-text-splitters==1.1.2
-langgraph==1.2.11
-langgraph-cli[inmem]==0.4.31
-langsmith==0.7.37
-
-# Embeddings / reranking
-sentence-transformers==5.4.1
-transformers==5.6.2
-torch==2.8.0
-scikit-learn==1.8.0
-numpy==2.4.4
-
-# PostgreSQL / pgvector
-psycopg==3.3.4
-psycopg-binary==3.3.4
-psycopg-pool==3.3.1
-pgvector==0.5.0
-```
-
-The requirements were verified with:
-
-```bash
-python -c "import fastapi, langgraph, psycopg, pgvector, sentence_transformers, torch; print('Imports OK')"
-```
-
-Both:
-
-```text
-langgraph dev
-```
-
-and:
-
-```text
-python api.py
-```
-
-were successfully tested from a clean environment.
-
----
 
 # Installation
 
@@ -700,12 +444,8 @@ During installation configure:
 Host: localhost
 Port: 5432
 User: postgres
+Password: root
 ```
-
-Choose a local password for the PostgreSQL user.
-
-The application database configuration must match the PostgreSQL installation.
-
 ---
 
 ## Linux / Debian / Ubuntu
@@ -910,30 +650,6 @@ rag
 ingestion
 ```
 
-Studio is useful for inspecting:
-
-```text
-Input
-State
-Messages
-Subqueries
-Cache decisions
-Retrieved chunks
-Reranked chunks
-Generated answers
-Sources
-Conditional routes
-Conversation memory
-Ingestion state
-```
-
-Stop the development server with:
-
-```text
-Ctrl + C
-```
-
----
 
 # Production Mode — FastAPI
 
@@ -1085,62 +801,6 @@ pgvector               Qwen 2.5
 
 ---
 
-# Project Structure
-
-```text
-petrolium/
-|
-+-- data/
-|   |
-|   +-- adblue-and-def.md
-|   +-- americas-biofuels.md
-|
-+-- Notebooks/
-|   |
-|   +-- 01_chunking_ingestion.ipynb
-|   +-- 02_retrieval_reranking.ipynb
-|
-+-- production/
-|   |
-|   +-- client/
-|   |   |
-|   |   +-- index.html
-|   |   +-- app.js
-|   |   +-- style.css
-|   |
-|   +-- langgraph_ap/
-|   |   |
-|   |   +-- api.py
-|   |   +-- database.py
-|   |   +-- evaluation.py
-|   |   +-- graph.py
-|   |   +-- nodes.py
-|   |   +-- state.py
-|   |   +-- studio_database.py
-|   |   +-- langgraph.json
-|   |   +-- requirements.txt
-|   |   |
-|   |   +-- ingestion/
-|   |       |
-|   |       +-- __init__.py
-|   |       +-- graph.py
-|   |       +-- nodes.py
-|   |       +-- state.py
-|   |
-|   +-- setup_database.py
-|
-+-- assets/
-|   |
-|   +-- architecture.png
-|   +-- langsmith-studio.png
-|   +-- chat-interface.png
-|   +-- statistics.png
-|
-+-- .gitignore
-+-- README.md
-```
-
----
 
 # Evaluation
 
@@ -1194,16 +854,6 @@ Source spoofing
 Information leakage
 ```
 
-Burp Suite Professional can import:
-
-```text
-/openapi.json
-```
-
-for API-driven testing.
-
----
-
 # Current Security Limitations
 
 The current implementation is primarily intended for local development and controlled testing.
@@ -1221,46 +871,6 @@ Examples of areas that should be hardened before Internet-facing deployment:
 
 ---
 
-# Git Ignore
-
-The repository excludes local and sensitive files such as:
-
-```text
-.env
-*.env
-__pycache__/
-*.pyc
-.langgraph_api/
-.ipynb_checkpoints/
-files_to_be_added_to_data/
-*.db
-*.sqlite
-*.sqlite3
-.vscode/
-.idea/
-```
-
----
-
-# Screenshots
-
-## LangGraph Studio
-
-![LangGraph Studio](assets/langsmith-studio.png)
-
----
-
-## Conversational Interface
-
-![RAG Chat Interface](assets/chat-interface.png)
-
----
-
-## Statistics
-
-![RAG Statistics](assets/statistics.png)
-
----
 
 # Future Improvements
 
@@ -1283,14 +893,3 @@ Possible future work includes:
 
 ---
 
-# Disclaimer
-
-This project is intended for:
-
-- research
-- education
-- RAG experimentation
-- AI engineering
-- controlled security testing
-
-Security testing should only be performed against systems that you own or have explicit permission to test.
