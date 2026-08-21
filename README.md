@@ -139,10 +139,6 @@ LANGSMITH_PROJECT
 API_PASSWORD
 ```
 
-Update the values in this file as required for your local environment.
-
-Database connection settings are currently defined in the database configuration files used by the application.
-
 # Development Mode — LangGraph Studio
 
 The repository is configured for **Studio mode by default**.
