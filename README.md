@@ -1,13 +1,10 @@
-# System Overview
+# Petroleum RAG Assistant
 
+A production-style conversational Retrieval-Augmented Generation (RAG) system built with LangGraph, FastAPI, PostgreSQL/pgvector and local LLM inference through Ollama.
 The application is split into two main LangGraph workflows:
 
 - **RAG Graph** — handles conversational queries, follow-ups, retrieval, reranking, answer generation and semantic caching.
 - **Ingestion Graph** — handles document discovery, change detection, Markdown chunking, contextualisation, embedding generation and indexing into PostgreSQL/pgvector.
-
-# Petroleum RAG Assistant
-
-A production-style conversational Retrieval-Augmented Generation (RAG) system built with LangGraph, FastAPI, PostgreSQL/pgvector and local LLM inference through Ollama.
 
 The project includes:
 
